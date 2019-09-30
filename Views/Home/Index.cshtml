@@ -1,0 +1,87 @@
+﻿@model BayshoreCodingChallenge.Models.LifeGameModel
+@{
+    ViewData["Title"] = "Coding Challenge";
+    string aliveCellClass = "btnCell glyphicon glyphicon-ok-sign text-success cell";
+    string deadCellClass = "btnCell glyphicon glyphicon-remove-sign text-danger cell";
+}
+
+<h1>Game of Life</h1>
+
+<div class="row">
+    <div class="col-sm-2 col-xs-6">
+        <div class="thumbnail text-center">
+            <span class="@aliveCellClass"></span>
+            <div class="caption">
+                <strong>Alive Cell</strong>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-2 col-xs-6">
+        <div class="thumbnail text-center">
+            <span class="@deadCellClass"></span>
+            <div class="caption">
+                <strong>Dead Cell</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3>Generation: @Model.GenerationNumber</h3>
+
+<form asp-controller="Home" asp-action="Index" method="post">
+    <input id="@nameof(LifeGameModel.GenerationNumber)" name="@nameof(LifeGameModel.GenerationNumber)" type="hidden" value="@Model.GenerationNumber" />
+
+    @{ int index = 0; }
+
+    @foreach (var cell in Model.CellBoard)
+    {
+        bool shouldBreakNextLine = (index + 1) % LifeGameModel.GAMEBOARDSIZE == 0;
+
+        <a id="btnCell@(index)" href="#" onclick="return toggleCell(@index);" class="@(cell ? aliveCellClass : deadCellClass)"></a>
+        <input id="CellBoard@(index)" name="CellBoard" type="hidden" value="@cell.ToString()" />
+
+
+        if (shouldBreakNextLine)
+        {
+            <br />
+        }
+
+        index++;
+    }
+
+    <div class="m-t-10">
+        <a href="/" class="btn btn-default">
+            <span class="glyphicon glyphicon-refresh"></span> &nbsp;
+            Reset Board
+        </a>
+        <input type="submit" class="btn btn-primary" value="Evolve Generation" />
+    </div>
+</form>
+
+@section scripts {
+    <script type="text/javascript">
+        function toggleCell(cellIndex) {
+            // Don't allow modification of generations outside of the first.
+            var currentGenerationNumber = $('#@(nameof(LifeGameModel.GenerationNumber))').val();
+            if (currentGenerationNumber != 1) {
+                alert('Cells can only be manipulated during the 1st generation. \n' +
+                    'Use the "Reset Board" button below to provide new cell generation input.'
+                );
+                return false;
+            }
+
+            // Get the cell's index, find the corresponding input and value.
+            var btnCell = $('a#btnCell' + cellIndex);
+            var cellInput = $('input#CellBoard' + cellIndex);
+            var isAlive = cellInput.val().toLowerCase() == "true";
+
+            // Set the hidden input's value for the state of the cell.
+            cellInput.val(!isAlive);
+
+            // Update the UI to reflect the new state of the cell.
+            btnCell.attr("class", !isAlive ? '@aliveCellClass' : '@deadCellClass');
+
+            return false;
+        }
+    </script>
+}
